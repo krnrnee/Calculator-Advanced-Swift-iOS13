@@ -13,43 +13,36 @@ class ViewController: UIViewController {
     @IBOutlet weak var displayLabel: UILabel!
     
     private var isFinishedTypingNumber: Bool = true
-    private var decimalAlreadyPressed: Bool = false
     private var num1: Double = 0.0
     private var num2: Double = 0.0
-    private var lastOperation: String = ""
     
+    private var calculatorLogic = CalculatorLogic()
+    
+    private var displayValue: Double {
+        get {
+            guard let doubleValue = Double(self.displayLabel.text!) else {
+                fatalError("Error converting display label text to double")
+            }
+            return doubleValue
+        }
+        set {
+            self.displayLabel.text = String(newValue)
+        }
+    }
+     
     @IBAction func calcButtonPressed(_ sender: UIButton) {
         
         //What should happen when a non-number button is pressed
         //displayLabel.text = "0"
         isFinishedTypingNumber = true
-        guard let doubleValue = Double(self.displayLabel.text!) else {
-            fatalError("Error converting display label text to double")
-        }
+        calculatorLogic.setNumber(displayValue)
         
-        switch sender.currentTitle {
-        case "AC":
-            self.displayLabel.text = "0"
-            num1 = 0.0
-            num2 = 0.0
-        case "+/-":
-            num1 = doubleValue
-            num1 = num1 * -1.0
-            self.displayLabel.text = String(num1)
-        case "%":
-            num1 = doubleValue
-            num1 = num1 / 100.0
-            self.displayLabel.text = String(num1)
-        case "+":
-            num1 += doubleValue
-            self.displayLabel.text = String(num1)
-        case "-":
-            num1 -= doubleValue
-            self.displayLabel.text = String(num1)
-        default:
-            self.displayLabel.text = "0"
+        if let calcMethod = sender.currentTitle {
+            guard let result = calculatorLogic.calculate(symbol: calcMethod) else {
+                fatalError("The result of the calculation is nil")
+            }
+            displayValue = result
         }
-        
     }
     
     
@@ -60,23 +53,18 @@ class ViewController: UIViewController {
             if isFinishedTypingNumber {
                 displayLabel.text = numValue
                 isFinishedTypingNumber = false
-           } else {
-               if numValue == "." {
-                   guard let currentDisplayValue = Double(displayLabel.text!) else {
-                       fatalError("Error converting display label text to double")
-                   }
-                   
-                   let isInt = floor(currentDisplayValue) == currentDisplayValue
- 
-                   if !isInt {
-                       return
-                   }
-               }
+            } else {
+                if numValue == "." {
+                    let isInt = floor(displayValue) == displayValue
+                    
+                    if !isInt {
+                        return
+                    }
+                }
                 displayLabel.text! += numValue
+                
             }
         }
-        
     }
-    
 }
 
